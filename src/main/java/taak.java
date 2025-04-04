@@ -6,6 +6,10 @@ public class taak {
     private String locatie;
     private boolean isPrioriteit;
 
+    public String toString(){
+        return taaknaam;
+    }
+
     public taak(int taakID, String taaknaam, String beschrijving, String datum, String locatie, boolean isPrioriteit){
         this.taakID = taakID;
         this.taaknaam = taaknaam;
