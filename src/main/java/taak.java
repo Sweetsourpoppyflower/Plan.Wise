@@ -5,18 +5,22 @@ public class taak {
     private String datum;
     private String locatie;
     private boolean isPrioriteit;
-
+    private String gebruikersnaam;
     public String toString(){
         return taaknaam;
     }
 
-    public taak(int taakID, String taaknaam, String beschrijving, String datum, String locatie, boolean isPrioriteit){
+    public taak(int taakID, String gebruikersnaam, String taaknaam, String beschrijving, String datum, String locatie, boolean isPrioriteit){
         this.taakID = taakID;
+        this.gebruikersnaam = gebruikersnaam;
         this.taaknaam = taaknaam;
         this.beschrijving = beschrijving;
         this.datum = datum;
         this.locatie = locatie;
         this.isPrioriteit = isPrioriteit;
+    }
+    public String getGebruikersnaam() {
+        return gebruikersnaam;
     }
 
     public int getTaakID() {
