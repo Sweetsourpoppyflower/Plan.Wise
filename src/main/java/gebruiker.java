@@ -1,3 +1,4 @@
+import java.util.Scanner;
 
 public class gebruiker implements persoon{
     private String email;
@@ -33,4 +34,5 @@ public class gebruiker implements persoon{
     public String getWachtwoord() {
         return wachtwoord;
     }
+
 }
