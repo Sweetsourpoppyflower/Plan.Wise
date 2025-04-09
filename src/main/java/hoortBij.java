@@ -1,3 +1,4 @@
+import java.sql.*;
 import java.util.ArrayList;
 import java.util.Iterator;
 import java.util.Scanner;
@@ -6,67 +7,198 @@ import java.time.LocalDate;
 public class hoortBij {
     public ArrayList<taak> taken;
 
-    public void setTaken(ArrayList<taak> taken) {
-        this.taken = taken;
+    public void taakAanmaken(int taakID, String gebruikersnaam, String taaknaam, String beschrijving, String datum, String locatie, boolean isPrioriteit) {
+        try (Connection dbc = DatabaseConnector.connect()) {
+            String sqlTID = "SELECT MAX(taak_id) FROM taken";
+            int nieuwTID = 1;
+
+            try (PreparedStatement sqlTaakID = dbc.prepareStatement(sqlTID);
+                 ResultSet resTaakID = sqlTaakID.executeQuery()) {
+                if (resTaakID.next()) {
+                    nieuwTID = resTaakID.getInt(1) + 1;
+                }
+            }
+
+            String sql = "INSERT INTO taken (taak_id, gebruikersnaam, taaknaam, beschrijving, datum, locatie, is_prioriteit) VALUES (?, ?, ?, ?, ?, ?, ?)";
+            try (PreparedStatement stmt = dbc.prepareStatement(sql)) {
+                stmt.setInt(1, nieuwTID);
+                stmt.setString(2, gebruikersnaam);
+                stmt.setString(3, taaknaam);
+                stmt.setString(4, beschrijving);
+                stmt.setDate(5, Date.valueOf(datum));
+                stmt.setString(6, locatie);
+                stmt.setBoolean(7, isPrioriteit);
+
+                stmt.executeUpdate();
+            }
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
     }
 
-
-    public taak taakAanmaken(int taakID, String gebruikersnaam, String taaknaam, String beschrijving, String datum, String locatie, boolean isPrioriteit) {
-        return new taak(taakID, gebruikersnaam ,taaknaam, beschrijving, datum, locatie, isPrioriteit);
-    }
 
     public void taakVerwijderen(int taakID) {
-        Iterator<taak> iterator = taken.iterator();
-        while (iterator.hasNext()) {
-            taak t = iterator.next();
-            if (t.getTaakID() == taakID) {
-                iterator.remove();
+        try (Connection dbc = DatabaseConnector.connect()) {
+            String sql = "DELETE FROM taken WHERE taak_id = ?";
+            try (PreparedStatement stmt = dbc.prepareStatement(sql)) {
+                stmt.setInt(1, taakID);
+                stmt.executeUpdate();
             }
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
     }
 
+
+
+    public void taakAanmakenViaInput() {
+        Scanner sc = new Scanner(System.in);
+        String gebruikersnaam = "Appie";
+        int taakID = 0 ;
+        System.out.println("Stap 1: Titel van de taak");
+        System.out.println("Wat is de naam of titel van deze taak?");
+        String taaknaam = sc.nextLine();
+
+        System.out.println("Stap 2: Beschrijving");
+        System.out.println("Beschrijf kort wat je moet doen bij deze taak:");
+        String beschrijving = sc.nextLine();
+
+        System.out.println("Stap 3: Datum");
+        System.out.println("Op welke datum moet je deze taak uitvoeren? (formaat: YYYY-MM-DD):");
+        String datum = sc.nextLine();
+
+        System.out.println("Stap 4: Locatie");
+        System.out.println("Waar vindt de taak plaats? (bijv. 'school', 'thuis', 'online'):");
+        String locatie = sc.nextLine();
+
+        System.out.println("Stap 5: Prioriteit");
+        System.out.println("Is deze taak een prioriteit? Typ 'true' of 'false':");
+        boolean isPrioriteit = sc.nextBoolean();
+
+        taakAanmaken(taakID, gebruikersnaam, taaknaam, beschrijving, datum, locatie, isPrioriteit);
+
+        System.out.println("Taak succesvol aangemaak!");
+    }
+
+
     public void schakelPrioriteit(int taakID) {
-        for (taak t : taken) {
-            if (t.getTaakID() == taakID) {
-                t.setPrioriteit(!(t.getPrioriteit()));
+        try (Connection dbc = DatabaseConnector.connect()) {
+            String sql = "UPDATE taken SET is_prioriteit = NOT is_prioriteit WHERE taak_id = ?";
+            try (PreparedStatement stmt = dbc.prepareStatement(sql)) {
+                stmt.setInt(1, taakID);
+                stmt.executeUpdate();
             }
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
     }
+
 
     public void vandaagsTaken() {
         LocalDate today = LocalDate.now();
-        System.out.println("=============================================================================");
-        System.out.println("Vandaag: " + today + " heb je de volgende taken:");
-        for (taak t : taken) {
-            LocalDate datum = LocalDate.parse(t.getDatum());
-            if (datum.isEqual(today)) {
-                System.out.println(t.getTaaknaam() + " bij " + t.getLocatie());
+        try (Connection dbc = DatabaseConnector.connect()) {
+            String sql = "SELECT taaknaam, datum, locatie FROM taken WHERE datum = ?";
+            try (PreparedStatement stmt = dbc.prepareStatement(sql)) {
+                stmt.setDate(1, Date.valueOf(today));
+                ResultSet rs = stmt.executeQuery();
+
+                System.out.println("=============================================================================");
+                System.out.println("Vandaag: " + today + " heb je de volgende taken:");
+
+                while (rs.next()) {
+                    String taaknaam = rs.getString("taaknaam");
+                    String locatie = rs.getString("locatie");
+                    System.out.println(taaknaam + " bij " + locatie);
+                }
+
+                System.out.println("=============================================================================");
             }
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
-        System.out.println("=============================================================================");
-        System.out.println("\n\n");
     }
 
 
-    public void vanDeWeeksTaken(){
+
+    public void vanDeWeeksTaken() {
         LocalDate today = LocalDate.now();
-        System.out.println("=============================================================================");
-        System.out.println("Deze week heb je de volgende taken:");
-        for (taak t : taken) {
-            LocalDate datum = LocalDate.parse(t.getDatum());
-            if (datum.compareTo(today) >= 0 && datum.compareTo(today) <= 7) {
-                System.out.println(t.getTaaknaam() + " op " + datum + " bij " + t.getLocatie());
+        try (Connection dbc = DatabaseConnector.connect()) {
+            String sql = "SELECT taaknaam, datum, locatie FROM taken WHERE datum BETWEEN ? AND ?";
+            LocalDate endOfWeek = today.plusDays(6);
+
+            try (PreparedStatement stmt = dbc.prepareStatement(sql)) {
+                stmt.setDate(1, Date.valueOf(today));
+                stmt.setDate(2, Date.valueOf(endOfWeek));
+                ResultSet rs = stmt.executeQuery();
+
+                System.out.println("=============================================================================");
+                System.out.println("Deze week heb je de volgende taken:");
+
+                while (rs.next()) {
+                    String taaknaam = rs.getString("taaknaam");
+                    Date datum = rs.getDate("datum");
+                    String locatie = rs.getString("locatie");
+                    System.out.println(taaknaam + " op " + datum + " bij " + locatie);
+                }
+
+                System.out.println("=============================================================================");
             }
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
         }
-        System.out.println("=============================================================================");
     }
 
-    public void blank(){
-        for (int i = 0; i < 50; ++i)
-            {System.out.println("");}
+
+    public void blank() {
+        for (int i = 0; i < 50; ++i) {
+            System.out.println("");
+        }
     }
 
-    public void updateTaak() {
+    public void alleTaken(){
+        try (Connection dbc = DatabaseConnector.connect();) {
+            String query = "SELECT * FROM taken";
+            Statement stmt = dbc.createStatement();
+            ResultSet rs = stmt.executeQuery(query);
+
+            System.out.println("taakID --- taakNaam ------ taakBeschrijving");
+            while (rs.next()) {
+                System.out.println(rs.getInt("taak_id") + " ------- " +
+                        rs.getString("taaknaam") + " ------ " +
+                        rs.getString("beschrijving"));
+            }
+
+            rs.close();
+            stmt.close();
+        } catch (SQLException | ClassNotFoundException e) {
+            e.printStackTrace();
+        }
+    }
+
+    public void toonTaakInfo(int taakID, Connection dbc) throws SQLException {
+        String sql = "SELECT taaknaam, beschrijving, datum, locatie, is_prioriteit FROM taken WHERE taak_id = ?";
+
+        try (PreparedStatement stmt = dbc.prepareStatement(sql)) {
+            stmt.setInt(1, taakID);
+            ResultSet rs = stmt.executeQuery();
+
+            if (rs.next()) {
+                System.out.println("\n ----------TAAK-INFO:----------");
+                System.out.println("Taaknaam: " + rs.getString("taaknaam"));
+                System.out.println("Beschrijving: " + rs.getString("beschrijving"));
+                System.out.println("Datum: " + rs.getDate("datum"));
+                System.out.println("Locatie: " + rs.getString("locatie"));
+                System.out.println("Prioriteit: " + (rs.getBoolean("is_prioriteit") ? "Ja" : "Nee"));
+                System.out.println("----------------------------------");
+            }
+
+            rs.close();
+        }
+    }
+
+
+
+    public void updateTaak() throws SQLException, ClassNotFoundException {
         Scanner sc = new Scanner(System.in);
         for (taak t : taken) {
             System.out.println(t.getTaakID() + " : " + t.getTaaknaam());
@@ -81,7 +213,7 @@ public class hoortBij {
         }
 
         while (bezig) {
-            blank();
+            Connection dbc = DatabaseConnector.connect();
             System.out.println("Kies wat je aan de taak wilt wijzigen: ");
             System.out.println("1: Titel ");
             System.out.println("2: beschrijving ");
@@ -92,78 +224,75 @@ public class hoortBij {
             int invoer = sc.nextInt();
             sc.nextLine();
 
-
             if (invoer == 1) {
-                for (taak tk : taken) {
-                    if (tk.getTaakID() == taakID) {
-                        System.out.println("type hier je nieuwe titel: ");
-                        String titel = sc.nextLine();
-                        tk.setTaaknaam(titel);
-                        System.out.println("je nieuwe titel : " + tk.getTaaknaam());
-                    }
+                System.out.println("type hier je nieuwe titel: ");
+                String titel = sc.nextLine();
+                String sql = "UPDATE taken SET taaknaam = ? WHERE taak_id = ?";
+                try (PreparedStatement stmt = dbc.prepareStatement(sql)) {
+                    stmt.setString(1, titel);
+                    stmt.setInt(2, taakID);
+                    stmt.executeUpdate();
                 }
+
             }
 
             if (invoer == 2) {
-                for (taak tk : taken) {
-                    if (tk.getTaakID() == taakID) {
-                        System.out.println("Type hier je nieuwe beschrijving: ");
-                        String besch = sc.nextLine();
-                        tk.setBeschrijving(besch);
-                    }
+                System.out.println("Type hier je nieuwe beschrijving: ");
+                String besch = sc.nextLine();
+                String sql = "UPDATE taken SET beschrijving = ? WHERE taak_id = ?";
+                try (PreparedStatement stmt = dbc.prepareStatement(sql)) {
+                    stmt.setString(1, besch);
+                    stmt.setInt(2, taakID);
+                    stmt.executeUpdate();
                 }
             }
 
             if (invoer == 3) {
-                for (taak tk : taken) {
-                    if (tk.getTaakID() == taakID) {
-                        System.out.println("welke dag ( 01-30 / 31 ): ");
-                        int dag = sc.nextInt();
-                        System.out.println("welke maand ( 1-12 ): ");
-                        int maand = sc.nextInt();
-                        System.out.println("welke jaar: ");
-                        int jaar = sc.nextInt();
-
-                        tk.setDatum(jaar + "-" + maand + "-" + dag);
-                    }
+                System.out.println("welke dag (01-31): ");
+                int dag = sc.nextInt();
+                System.out.println("welke maand (1-12): ");
+                int maand = sc.nextInt();
+                System.out.println("welke jaar: ");
+                int jaar = sc.nextInt();
+                sc.nextLine(); // buffer cleanen
+                String datum = jaar + "-" + maand + "-" + dag;
+                String sql = "UPDATE taken SET datum = ? WHERE taak_id = ?";
+                try (PreparedStatement stmt = dbc.prepareStatement(sql)) {
+                    stmt.setDate(1, Date.valueOf(datum));
+                    stmt.setInt(2, taakID);
+                    stmt.executeUpdate();
                 }
             }
 
             if (invoer == 4) {
-                for (taak tk : taken) {
-                    if (tk.getTaakID() == taakID) {
-                        System.out.println("Wat is je nieuwe locatie: ");
-                        String loc = sc.nextLine();
-                        tk.setLocatie(loc);
-                    }
+                System.out.println("Wat is je nieuwe locatie: ");
+                String loc = sc.nextLine();
+                String sql = "UPDATE taken SET locatie = ? WHERE taak_id = ?";
+                try (PreparedStatement stmt = dbc.prepareStatement(sql)) {
+                    stmt.setString(1, loc);
+                    stmt.setInt(2, taakID);
+                    stmt.executeUpdate();
                 }
             }
 
             if (invoer == 5) {
-                for (taak tk : taken) {
-                    if (tk.getTaakID() == taakID) {
-                        System.out.println("Je prioriteit is nu op: " + tk.getPrioriteit());
-                        System.out.println("wil je het schakelen? (antwoord met j of n)");
-                        String antw = sc.nextLine();
-                        if (antw.equalsIgnoreCase("ja")) {
-                            schakelPrioriteit(taakID);
-                        }
+                System.out.println("wil je prioriteit schakelen? (j/n)");
+                String antw = sc.nextLine();
+                if (antw.equalsIgnoreCase("j")) {
+                    String sql = "UPDATE taken SET is_prioriteit = NOT is_prioriteit WHERE taak_id = ?";
+                    try (PreparedStatement stmt = dbc.prepareStatement(sql)) {
+                        stmt.setInt(1, taakID);
+                        stmt.executeUpdate();
                     }
                 }
-            }
 
             if (invoer == 6) {
-                System.out.println("TaakUpdate afgesloten...");
-                bezig = false;
+                alleTaken();
             }
-
-            if (invoer < 1 || invoer > 6) {
-                System.out.println("Voer een geldige optienummer in!!");
             }
-
+        }
 
         }
-    }
 
 
 }

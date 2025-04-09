@@ -4,9 +4,6 @@ public class focusModus {
     public ArrayList<taak> taken;
     public boolean ingeschakeld;
 
-    public void setTaken(ArrayList<taak> taken) {
-        this.taken = taken;
-    }
 
     public boolean isIngeschakeld() {
         return ingeschakeld;
