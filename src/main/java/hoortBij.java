@@ -37,7 +37,7 @@ public class hoortBij {
     }
 
 
-    public void taakVerwijderen(int taakID) {
+    public void taakVerwijderen(int taakID) throws SQLException, ClassNotFoundException {
         try (Connection dbc = DatabaseConnector.connect()) {
             String sql = "DELETE FROM taken WHERE taak_id = ?";
             try (PreparedStatement stmt = dbc.prepareStatement(sql)) {
@@ -47,38 +47,46 @@ public class hoortBij {
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
         }
+
+        menu();
     }
 
 
 
-    public void taakAanmakenViaInput() {
+    public void taakAanmakenViaInput() throws SQLException, ClassNotFoundException {
         Scanner sc = new Scanner(System.in);
         String gebruikersnaam = "Appie";
-        int taakID = 0 ;
-        System.out.println("Stap 1: Titel van de taak");
-        System.out.println("Wat is de naam of titel van deze taak?");
+        int taakID = 0;
+
+        blank(50);
+        System.out.println("╔═════════════════════════════════════════════════════════════════════════════════════════════════════════╗");
+        System.out.println("                             ➕  TAAK TOEVOEGEN  ➕                                                        ");
+        System.out.println("╚═════════════════════════════════════════════════════════════════════════════════════════════════════════╝");
+
+        System.out.print("📝 Titel van de taak: ");
         String taaknaam = sc.nextLine();
 
-        System.out.println("Stap 2: Beschrijving");
-        System.out.println("Beschrijf kort wat je moet doen bij deze taak:");
+        System.out.print("📄 Beschrijving: ");
         String beschrijving = sc.nextLine();
 
-        System.out.println("Stap 3: Datum");
-        System.out.println("Op welke datum moet je deze taak uitvoeren? (formaat: YYYY-MM-DD):");
+        System.out.print("📆 Datum (formaat: YYYY-MM-DD): ");
         String datum = sc.nextLine();
 
-        System.out.println("Stap 4: Locatie");
-        System.out.println("Waar vindt de taak plaats? (bijv. 'school', 'thuis', 'online'):");
+        System.out.print("📍 Locatie (bv. school, thuis, online): ");
         String locatie = sc.nextLine();
 
-        System.out.println("Stap 5: Prioriteit");
-        System.out.println("Is deze taak een prioriteit? Typ 'true' of 'false':");
+        System.out.print("⚡ Is het een prioriteit? (true/false): ");
         boolean isPrioriteit = sc.nextBoolean();
 
         taakAanmaken(taakID, gebruikersnaam, taaknaam, beschrijving, datum, locatie, isPrioriteit);
 
-        System.out.println("Taak succesvol aangemaak!");
+        System.out.println("\n✅ Taak succesvol aangemaakt!");
+        System.out.println("═══════════════════════════════════════════════════════════════════════════════════════════════════════════");
+
+        blank(5);
+        menu();
     }
+
 
 
     public void schakelPrioriteit(int taakID) {
@@ -94,7 +102,9 @@ public class hoortBij {
     }
 
 
-    public void vandaagsTaken() {
+    public void vandaagsTaken() throws SQLException, ClassNotFoundException {
+        blank(50);
+        Scanner sc = new Scanner(System.in);
         LocalDate today = LocalDate.now();
         try (Connection dbc = DatabaseConnector.connect()) {
             String sql = "SELECT taaknaam, datum, locatie FROM taken WHERE datum = ?";
@@ -102,70 +112,120 @@ public class hoortBij {
                 stmt.setDate(1, Date.valueOf(today));
                 ResultSet rs = stmt.executeQuery();
 
-                System.out.println("=============================================================================");
-                System.out.println("Vandaag: " + today + " heb je de volgende taken:");
+                System.out.println("╔═════════════════════════════════════════════════════════════════════════════════════════════════════════╗");
+                System.out.println("                                 📅  TAKEN VANDAAG (" + today + ")  📅                                     ");
+                System.out.println("╚═════════════════════════════════════════════════════════════════════════════════════════════════════════╝\n");
+
+                boolean heeftTaken = false;
 
                 while (rs.next()) {
                     String taaknaam = rs.getString("taaknaam");
                     String locatie = rs.getString("locatie");
-                    System.out.println(taaknaam + " bij " + locatie);
+                    System.out.println("📌 " + taaknaam + " bij 📍 " + locatie);
+                    heeftTaken = true;
                 }
 
-                System.out.println("=============================================================================");
+                if (!heeftTaken) {
+                    System.out.println("🙌 Geen taken gepland voor vandaag!");
+                }
             }
-        } catch (SQLException | ClassNotFoundException e) {
-            e.printStackTrace();
         }
+        System.out.println("\n═══════════════════════════════════════════════════════════════════════════════════════════════════════════");
+        System.out.println("                       📜  Kies een van de volgende opties:  📜");
+        System.out.println("═══════════════════════════════════════════════════════════════════════════════════════════════════════════");
+        System.out.println("  [1] 🏠 Hoofd Menu");
+        System.out.println("  [2] 📋 Alle Taken");
+        System.out.print("👉 Keuze: ");
+        int invoer = sc.nextInt();
+
+        if (invoer == 1) {
+            menu();
+        } else if (invoer == 2) {
+            alleTaken();
+        }
+
+        blank(5);
     }
 
 
-
-    public void vanDeWeeksTaken() {
+    public void vanDeWeeksTaken() throws SQLException, ClassNotFoundException {
+        blank(50);
+        Scanner sc = new Scanner(System.in);
         LocalDate today = LocalDate.now();
+        LocalDate endOfWeek = today.plusDays(6);
+
         try (Connection dbc = DatabaseConnector.connect()) {
             String sql = "SELECT taaknaam, datum, locatie FROM taken WHERE datum BETWEEN ? AND ?";
-            LocalDate endOfWeek = today.plusDays(6);
-
             try (PreparedStatement stmt = dbc.prepareStatement(sql)) {
                 stmt.setDate(1, Date.valueOf(today));
                 stmt.setDate(2, Date.valueOf(endOfWeek));
                 ResultSet rs = stmt.executeQuery();
 
-                System.out.println("=============================================================================");
-                System.out.println("Deze week heb je de volgende taken:");
+                System.out.println("╔═════════════════════════════════════════════════════════════════════════════════════════════════════════╗");
+                System.out.println("                              📅  TAKEN DEZE WEEK (" + today + " t/m " + endOfWeek + ")  📅                      ");
+                System.out.println("╚═════════════════════════════════════════════════════════════════════════════════════════════════════════╝\n");
+
+                boolean heeftTaken = false;
 
                 while (rs.next()) {
                     String taaknaam = rs.getString("taaknaam");
                     Date datum = rs.getDate("datum");
                     String locatie = rs.getString("locatie");
-                    System.out.println(taaknaam + " op " + datum + " bij " + locatie);
+                    System.out.println("📌 " + taaknaam + " op 📆 " + datum + " bij 📍 " + locatie);
+                    heeftTaken = true;
                 }
 
-                System.out.println("=============================================================================");
+                if (!heeftTaken) {
+                    System.out.println("🙌 Geen taken gepland deze week!");
+                }
+
+                System.out.println("\n═══════════════════════════════════════════════════════════════════════════════════════════════════════════");
             }
-        } catch (SQLException | ClassNotFoundException e) {
-            e.printStackTrace();
         }
+
+        System.out.println("                       📜  Kies een van de volgende opties:  📜");
+        System.out.println("═══════════════════════════════════════════════════════════════════════════════════════════════════════════");
+        System.out.println("  [1] 🏠 Hoofd Menu");
+        System.out.println("  [2] 📋 Alle Taken");
+        System.out.print("👉 Keuze: ");
+        int invoer = sc.nextInt();
+
+        if (invoer == 1) {
+            menu();
+        } else if (invoer == 2) {
+            alleTaken();
+        }
+
+        blank(5);
     }
 
 
-    public void blank() {
-        for (int i = 0; i < 50; ++i) {
-            System.out.println("");
-        }
+    public void blank(int aantal) {
+        System.out.println("\n".repeat(aantal));
     }
 
-    public void alleTaken(){
+
+    public void alleTaken() throws SQLException, ClassNotFoundException {
+        blank(50);
+        Scanner sc = new Scanner(System.in);
         try (Connection dbc = DatabaseConnector.connect();) {
             String query = "SELECT * FROM taken";
             Statement stmt = dbc.createStatement();
             ResultSet rs = stmt.executeQuery(query);
 
-            System.out.println("taakID --- taakNaam ------ taakBeschrijving");
+            System.out.println("╔═════════════════════════════════════════════════════════════════════════════════════════════════════════════╗");
+            System.out.println("║                        📋  Alle Taken  📋                                      ");
+            System.out.println("╚═════════════════════════════════════════════════════════════════════════════════════════════════════════════╝");
+            System.out.printf("%-10s %-20s %-50s%n", "ID", "NAAM", "BESCHRIJVING");
+            System.out.println("──────────────────────────────────────────────────────────────────────────────────────────────────────────────");
+
             while (rs.next()) {
-                System.out.println(rs.getInt("taak_id") + " ------- " +
-                        rs.getString("taaknaam") + " ------ " +
-                        rs.getString("beschrijving"));
+                System.out.printf(
+                        "%-10d %-20s %-50s%n",
+                        rs.getInt("taak_id"),
+                        rs.getString("taaknaam"),
+                        rs.getString("beschrijving")
+                );
             }
 
             rs.close();
@@ -173,39 +233,85 @@ public class hoortBij {
         } catch (SQLException | ClassNotFoundException e) {
             e.printStackTrace();
         }
+
+        System.out.println("═══════════════════════════════════════════════════════════════════════════════════════════════════════════════");
+        System.out.println("                       📜  Kies een van de volgende opties:  📜");
+        System.out.println("═══════════════════════════════════════════════════════════════════════════════════════════════════════════════");
+        System.out.println("  [1] 🏠 Hoofd Menu");
+        System.out.println("  [2] 🗓️ Dagelijkse taken");
+        System.out.println("  [3] 🗓️ Wekelijkse taken");
+        System.out.println("  [5] 🔍 TaakID voor meer informatie");
+        System.out.println("════════════════════════════════════════════════════════════════════════════════════════════════════════════════");
+        System.out.print("👉 Selecteer een optie >>> ");
+        int invoer = sc.nextInt();
+
+        if (invoer == 1) {
+            menu();
+        }
+
+        if (invoer == 2) {
+            vandaagsTaken();
+        }
+
+        if (invoer == 3) {
+            vanDeWeeksTaken();
+        }
+
+        if (invoer > 10) {
+            toonTaakInfo(invoer);
+        }
+
+        blank(10);
     }
 
-    public void toonTaakInfo(int taakID, Connection dbc) throws SQLException {
-        String sql = "SELECT taaknaam, beschrijving, datum, locatie, is_prioriteit FROM taken WHERE taak_id = ?";
+    public void toonTaakInfo(int taakID) throws SQLException, ClassNotFoundException {
+        blank(50);
+        Scanner sc = new Scanner(System.in);
+        Connection dbc = DatabaseConnector.connect();
+        String sql = "SELECT taak_id, taaknaam, beschrijving, datum, locatie, is_prioriteit FROM taken WHERE taak_id = ?";
 
         try (PreparedStatement stmt = dbc.prepareStatement(sql)) {
             stmt.setInt(1, taakID);
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                System.out.println("\n ----------TAAK-INFO:----------");
-                System.out.println("Taaknaam: " + rs.getString("taaknaam"));
-                System.out.println("Beschrijving: " + rs.getString("beschrijving"));
-                System.out.println("Datum: " + rs.getDate("datum"));
-                System.out.println("Locatie: " + rs.getString("locatie"));
-                System.out.println("Prioriteit: " + (rs.getBoolean("is_prioriteit") ? "Ja" : "Nee"));
-                System.out.println("----------------------------------");
+                System.out.println("╔═════════════════════════════════════════════════════════════════════════════════════════════════════════╗");
+                System.out.println("║               📋 Taak Informatie: " + rs.getString("taaknaam") + " 📋              ");
+                System.out.println("╚═════════════════════════════════════════════════════════════════════════════════════════════════════════╝\n");
+
+                System.out.println("📝 Beschrijving: " + rs.getString("beschrijving"));
+                System.out.println("📅 Datum: " + rs.getDate("datum"));
+                System.out.println("📍 Locatie: " + rs.getString("locatie"));
+                System.out.println("⚡ Prioriteit: " + (rs.getBoolean("is_prioriteit") ? "Ja" : "Nee"));
             }
+
+            System.out.println("═══════════════════════════════════════════════════════════════════════════════════════════════════════════");
+            System.out.println("                       📜  Kies een van de volgende opties:  📜");
+            System.out.println("═══════════════════════════════════════════════════════════════════════════════════════════════════════════");
+            System.out.println("  [1] 🏠 Hoofd Menu");
+            System.out.println("  [2] ✏️ Taak updaten");
+            System.out.println("  [3] 🗑️ Taak verwijderen");
+            System.out.println("  [4] 📋 Alle taken\n");
+
+            System.out.println("═══════════════════════════════════════════════════════════════════════════════════════════════════════════");
+            System.out.print("👉 Selecteer een optie >>> ");
+            int invoer = sc.nextInt();
+
+            if (invoer == 1) { menu(); }
+            if (invoer == 2) { updateTaak(rs.getInt("taak_id")); }
+            if (invoer == 3) { taakVerwijderen(rs.getInt("taak_id")); }
+            if (invoer == 4) { alleTaken(); }
 
             rs.close();
         }
+        blank(10);
     }
 
 
 
-    public void updateTaak() throws SQLException, ClassNotFoundException {
-        Scanner sc = new Scanner(System.in);
-        for (taak t : taken) {
-            System.out.println(t.getTaakID() + " : " + t.getTaaknaam());
-        }
 
-        System.out.println("Voer de taakID in van je gewenste taak: ");
-        int taakID = sc.nextInt();
+    public void updateTaak(int taakID) throws SQLException, ClassNotFoundException {
+        Scanner sc = new Scanner(System.in);
         boolean bezig = false;
 
         if (taakID != 0) {
@@ -214,18 +320,29 @@ public class hoortBij {
 
         while (bezig) {
             Connection dbc = DatabaseConnector.connect();
-            System.out.println("Kies wat je aan de taak wilt wijzigen: ");
-            System.out.println("1: Titel ");
-            System.out.println("2: beschrijving ");
-            System.out.println("3: datum ");
-            System.out.println("4: locatie ");
-            System.out.println("5: prioriteit ");
-            System.out.println("6: alle taken");
+            blank(50);
+
+            System.out.println("╔═════════════════════════════════════════════════════════════════════════════════════════════════════════╗");
+            System.out.println("                                🛠️  UPDATE TAAK MENU  🛠️                                                 ");
+            System.out.println("╚═════════════════════════════════════════════════════════════════════════════════════════════════════════╝");
+            System.out.println("══════════════════════════════════════════════════════════════════════════════════════════════════════════");
+            System.out.println("                       📜  Kies wat je aan de taak wilt wijzigen:  📜");
+            System.out.println("══════════════════════════════════════════════════════════════════════════════════════════════════════════");
+
+            System.out.println("  [1] ✏️  Titel");
+            System.out.println("  [2] 📝 Beschrijving");
+            System.out.println("  [3] 📅 Datum");
+            System.out.println("  [4] 📍 Locatie");
+            System.out.println("  [5]  ⚡ Prioriteit");
+            System.out.println("  [6] 📋 Alle taken\n");
+
+            System.out.println("═══════════════════════════════════════════════════════════════════════════════════════════════════════════");
+            System.out.print("👉 Invoer: ");
             int invoer = sc.nextInt();
             sc.nextLine();
 
             if (invoer == 1) {
-                System.out.println("type hier je nieuwe titel: ");
+                System.out.print("✏️  Type hier je nieuwe titel >>> ");
                 String titel = sc.nextLine();
                 String sql = "UPDATE taken SET taaknaam = ? WHERE taak_id = ?";
                 try (PreparedStatement stmt = dbc.prepareStatement(sql)) {
@@ -233,11 +350,10 @@ public class hoortBij {
                     stmt.setInt(2, taakID);
                     stmt.executeUpdate();
                 }
-
             }
 
             if (invoer == 2) {
-                System.out.println("Type hier je nieuwe beschrijving: ");
+                System.out.print("📝 Type hier je nieuwe beschrijving >>> ");
                 String besch = sc.nextLine();
                 String sql = "UPDATE taken SET beschrijving = ? WHERE taak_id = ?";
                 try (PreparedStatement stmt = dbc.prepareStatement(sql)) {
@@ -248,13 +364,14 @@ public class hoortBij {
             }
 
             if (invoer == 3) {
-                System.out.println("welke dag (01-31): ");
+                System.out.print("📅 Welke dag (01-31): ");
                 int dag = sc.nextInt();
-                System.out.println("welke maand (1-12): ");
+                System.out.print("📅 Welke maand (1-12): ");
                 int maand = sc.nextInt();
-                System.out.println("welke jaar: ");
+                System.out.print("📅 Welke jaar: ");
                 int jaar = sc.nextInt();
                 sc.nextLine(); // buffer cleanen
+
                 String datum = jaar + "-" + maand + "-" + dag;
                 String sql = "UPDATE taken SET datum = ? WHERE taak_id = ?";
                 try (PreparedStatement stmt = dbc.prepareStatement(sql)) {
@@ -265,7 +382,7 @@ public class hoortBij {
             }
 
             if (invoer == 4) {
-                System.out.println("Wat is je nieuwe locatie: ");
+                System.out.print("📍 Wat is je nieuwe locatie >>> ");
                 String loc = sc.nextLine();
                 String sql = "UPDATE taken SET locatie = ? WHERE taak_id = ?";
                 try (PreparedStatement stmt = dbc.prepareStatement(sql)) {
@@ -276,7 +393,7 @@ public class hoortBij {
             }
 
             if (invoer == 5) {
-                System.out.println("wil je prioriteit schakelen? (j/n)");
+                System.out.print("⚡ Wil je prioriteit schakelen? (j/n) >>> ");
                 String antw = sc.nextLine();
                 if (antw.equalsIgnoreCase("j")) {
                     String sql = "UPDATE taken SET is_prioriteit = NOT is_prioriteit WHERE taak_id = ?";
@@ -285,14 +402,44 @@ public class hoortBij {
                         stmt.executeUpdate();
                     }
                 }
+            }
 
             if (invoer == 6) {
                 alleTaken();
             }
-            }
         }
+    }
 
-        }
+
+    public void menu() throws SQLException, ClassNotFoundException {
+        blank(50);
+        Scanner sc = new Scanner(System.in);
+        focusModus fm = new focusModus();
+
+        System.out.println("╔═════════════════════════════════════════════════════════════════════════════════════════════════════════╗");
+        System.out.println("                                📋  HOOFD MENU  📋                                                       ");
+        System.out.println("╚═════════════════════════════════════════════════════════════════════════════════════════════════════════╝\n");
+
+        System.out.println("═══════════════════════════════════════════════════════════════════════════════════════════════════════════");
+        System.out.println("                       📜  Kies een van de volgende opties:  📜");
+        System.out.println("═══════════════════════════════════════════════════════════════════════════════════════════════════════════");
+        System.out.println("  [1] 📂 Alle taken bekijken");
+        System.out.println("  [2] ➕ Taak toevoegen");
+        System.out.println("  [3] 🎯 Focus Modus");
+        System.out.println("  [4] ❌ Exit\n");
+        System.out.println("═══════════════════════════════════════════════════════════════════════════════════════════════════════════");
+
+        System.out.print("👉 Keuze: ");
+        int invoer = sc.nextInt();
+
+        if (invoer == 1) { alleTaken(); }
+        if (invoer == 2) { taakAanmakenViaInput(); }
+        if (invoer == 3) { fm.getPrioriteitsTaken(); }
+        if (invoer == 4) { System.exit(0); }
+
+        blank(5);
+    }
+
 
 
 }
