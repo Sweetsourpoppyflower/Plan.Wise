@@ -1,6 +1,5 @@
 import java.sql.*;
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.Scanner;
 import java.time.LocalDate;
 
@@ -59,7 +58,7 @@ public class hoortBij {
         int taakID = 0;
 
         blank(50);
-        System.out.println("╔═════════════════════════════════════════════════════════════════════════════════════════════════════════╗");
+        System.out.println("╔═══════════════════════════════════════════════════════════════════════════════════════════════PlanWise══╗");
         System.out.println("                             ➕  TAAK TOEVOEGEN  ➕                                                        ");
         System.out.println("╚═════════════════════════════════════════════════════════════════════════════════════════════════════════╝");
 
@@ -69,16 +68,51 @@ public class hoortBij {
         System.out.print("📄 Beschrijving: ");
         String beschrijving = sc.nextLine();
 
-        System.out.print("📆 Datum (formaat: YYYY-MM-DD): ");
-        String datum = sc.nextLine();
+        System.out.println("📆 Kies een datum:");
+        System.out.println("  [1] Vandaag");
+        System.out.println("  [2] Morgen");
+        System.out.println("  [3] Volgende week");
+        System.out.println("  [4] Handmatig invoeren (YYYY-MM-DD)");
+        System.out.print("👉 Keuze: ");
+        int keuze = sc.nextInt();
+        sc.nextLine();
+
+        LocalDate datum;
+        if (keuze == 1) {
+            datum = LocalDate.now();
+        } else if (keuze == 2) {
+            datum = LocalDate.now().plusDays(1);
+        } else if (keuze == 3) {
+            datum = LocalDate.now().plusWeeks(1);
+        } else {
+            System.out.print("✍️ Datum (YYYY-MM-DD): ");
+            String input = sc.nextLine();
+            try {
+                datum = LocalDate.parse(input);
+            } catch (Exception e) {
+                System.out.println("❌ Ongeldige invoer. Terug naar menu.");
+                return;
+            }
+        }
+
 
         System.out.print("📍 Locatie (bv. school, thuis, online): ");
         String locatie = sc.nextLine();
 
-        System.out.print("⚡ Is het een prioriteit? (true/false): ");
-        boolean isPrioriteit = sc.nextBoolean();
+        System.out.print("⚡ Is het een prioriteit? (1 = wel / 0 = geen prioriteit): ");
+        boolean isPrioriteit = false;
+        int priorinvoer = sc.nextInt();
+        while (priorinvoer > 1 || priorinvoer < 0) {
+            System.out.println("❌ Ongeldige invoer");
+            System.out.print("⚡ Is het een prioriteit? (1 = wel / 0 = geen prioriteit): ");
+            isPrioriteit = false;
+            priorinvoer = sc.nextInt();
+        }
+        if (priorinvoer == 1) {isPrioriteit = true;}
+        if (priorinvoer != 1) {isPrioriteit = false;}
+//        boolean isPrioriteit = sc.nextBoolean();
 
-        taakAanmaken(taakID, gebruikersnaam, taaknaam, beschrijving, datum, locatie, isPrioriteit);
+        taakAanmaken(taakID, gebruikersnaam, taaknaam, beschrijving, String.valueOf(datum), locatie, isPrioriteit);
 
         System.out.println("\n✅ Taak succesvol aangemaakt!");
         System.out.println("═══════════════════════════════════════════════════════════════════════════════════════════════════════════");
@@ -112,7 +146,7 @@ public class hoortBij {
                 stmt.setDate(1, Date.valueOf(today));
                 ResultSet rs = stmt.executeQuery();
 
-                System.out.println("╔═════════════════════════════════════════════════════════════════════════════════════════════════════════╗");
+                System.out.println("╔═══════════════════════════════════════════════════════════════════════════════════════════════PlanWise══╗");
                 System.out.println("                                 📅  TAKEN VANDAAG (" + today + ")  📅                                     ");
                 System.out.println("╚═════════════════════════════════════════════════════════════════════════════════════════════════════════╝\n");
 
@@ -138,11 +172,18 @@ public class hoortBij {
         System.out.print("👉 Keuze: ");
         int invoer = sc.nextInt();
 
+        while (invoer > 2 || invoer == 0) {
+            System.out.println("❌ Ongeldige invoer");
+            System.out.print("👉 Keuze: ");
+            invoer = sc.nextInt();
+        }
+
         if (invoer == 1) {
             menu();
         } else if (invoer == 2) {
             alleTaken();
         }
+
 
         blank(5);
     }
@@ -161,7 +202,7 @@ public class hoortBij {
                 stmt.setDate(2, Date.valueOf(endOfWeek));
                 ResultSet rs = stmt.executeQuery();
 
-                System.out.println("╔═════════════════════════════════════════════════════════════════════════════════════════════════════════╗");
+                System.out.println("╔═══════════════════════════════════════════════════════════════════════════════════════════════PlanWise══╗");
                 System.out.println("                              📅  TAKEN DEZE WEEK (" + today + " t/m " + endOfWeek + ")  📅                      ");
                 System.out.println("╚═════════════════════════════════════════════════════════════════════════════════════════════════════════╝\n");
 
@@ -179,16 +220,22 @@ public class hoortBij {
                     System.out.println("🙌 Geen taken gepland deze week!");
                 }
 
-                System.out.println("\n═══════════════════════════════════════════════════════════════════════════════════════════════════════════");
             }
         }
 
+        System.out.println("\n═══════════════════════════════════════════════════════════════════════════════════════════════════════════");
         System.out.println("                       📜  Kies een van de volgende opties:  📜");
         System.out.println("═══════════════════════════════════════════════════════════════════════════════════════════════════════════");
         System.out.println("  [1] 🏠 Hoofd Menu");
         System.out.println("  [2] 📋 Alle Taken");
         System.out.print("👉 Keuze: ");
         int invoer = sc.nextInt();
+
+        while (invoer > 2 || invoer == 0) {
+            System.out.println("❌ Ongeldige invoer");
+            System.out.print("👉 Keuze: ");
+            invoer = sc.nextInt();
+        }
 
         if (invoer == 1) {
             menu();
@@ -202,20 +249,26 @@ public class hoortBij {
 
     public void blank(int aantal) {
         System.out.println("\n".repeat(aantal));
+        System.out.println(" ____    _                  __        __  _               ");
+        System.out.println("|  _ \\  | |   __ _   _ __   \\ \\      / / (_)  ___    ___ ");
+        System.out.println("| |_) | | |  / _` | | '_ \\   \\ \\ /\\ / /  | | / __|  / _ \\");
+        System.out.println("|  __/  | | | (_| | | | | |   \\ V  V /   | | \\__ \\ |  __/");
+        System.out.println("|_|     |_|  \\__,_| |_| |_|    \\_/\\_/    |_| |___/  \\___|");
     }
 
 
     public void alleTaken() throws SQLException, ClassNotFoundException {
         blank(50);
         Scanner sc = new Scanner(System.in);
+        int hoogsteID = 0;
         try (Connection dbc = DatabaseConnector.connect();) {
             String query = "SELECT * FROM taken";
             Statement stmt = dbc.createStatement();
             ResultSet rs = stmt.executeQuery(query);
 
-            System.out.println("╔═════════════════════════════════════════════════════════════════════════════════════════════════════════════╗");
+            System.out.println("╔═══════════════════════════════════════════════════════════════════════════════════════════════════PlanWise══╗");
             System.out.println("║                        📋  Alle Taken  📋                                      ");
-            System.out.println("╚═════════════════════════════════════════════════════════════════════════════════════════════════════════════╝");
+            System.out.println("╚══PlanWise═══════════════════════════════════════════════════════════════════════════════════════════════════╝");
             System.out.printf("%-10s %-20s %-50s%n", "ID", "NAAM", "BESCHRIJVING");
             System.out.println("──────────────────────────────────────────────────────────────────────────────────────────────────────────────");
 
@@ -226,6 +279,7 @@ public class hoortBij {
                         rs.getString("taaknaam"),
                         rs.getString("beschrijving")
                 );
+                hoogsteID = rs.getInt("taak_id");
             }
 
             rs.close();
@@ -242,8 +296,14 @@ public class hoortBij {
         System.out.println("  [3] 🗓️ Wekelijkse taken");
         System.out.println("  [5] 🔍 TaakID voor meer informatie");
         System.out.println("════════════════════════════════════════════════════════════════════════════════════════════════════════════════");
-        System.out.print("👉 Selecteer een optie >>> ");
+        System.out.print("");
         int invoer = sc.nextInt();
+
+        while (invoer > hoogsteID || invoer == 0) {
+            System.out.println("❌ Ongeldige invoer");
+            System.out.print("👉 Selecteer een optie >>> ");
+            invoer = sc.nextInt();
+        }
 
         if (invoer == 1) {
             menu();
@@ -275,7 +335,7 @@ public class hoortBij {
             ResultSet rs = stmt.executeQuery();
 
             if (rs.next()) {
-                System.out.println("╔═════════════════════════════════════════════════════════════════════════════════════════════════════════╗");
+                System.out.println("╔═══════════════════════════════════════════════════════════════════════════════════════════════PlanWise══╗");
                 System.out.println("║               📋 Taak Informatie: " + rs.getString("taaknaam") + " 📋              ");
                 System.out.println("╚═════════════════════════════════════════════════════════════════════════════════════════════════════════╝\n");
 
@@ -296,6 +356,12 @@ public class hoortBij {
             System.out.println("═══════════════════════════════════════════════════════════════════════════════════════════════════════════");
             System.out.print("👉 Selecteer een optie >>> ");
             int invoer = sc.nextInt();
+
+            while (invoer > 4 || invoer == 0) {
+                System.out.println("❌ Ongeldige invoer");
+                System.out.print("👉 Selecteer een optie >>> ");
+                invoer = sc.nextInt();
+            }
 
             if (invoer == 1) { menu(); }
             if (invoer == 2) { updateTaak(rs.getInt("taak_id")); }
@@ -322,10 +388,10 @@ public class hoortBij {
             Connection dbc = DatabaseConnector.connect();
             blank(50);
 
-            System.out.println("╔═════════════════════════════════════════════════════════════════════════════════════════════════════════╗");
+            System.out.println("╔═══════════════════════════════════════════════════════════════════════════════════════════════PlanWise══╗");
             System.out.println("                                🛠️  UPDATE TAAK MENU  🛠️                                                 ");
             System.out.println("╚═════════════════════════════════════════════════════════════════════════════════════════════════════════╝");
-            System.out.println("══════════════════════════════════════════════════════════════════════════════════════════════════════════");
+//            System.out.println("══════════════════════════════════════════════════════════════════════════════════════════════════════════");
             System.out.println("                       📜  Kies wat je aan de taak wilt wijzigen:  📜");
             System.out.println("══════════════════════════════════════════════════════════════════════════════════════════════════════════");
 
@@ -340,6 +406,12 @@ public class hoortBij {
             System.out.print("👉 Invoer: ");
             int invoer = sc.nextInt();
             sc.nextLine();
+
+            while (invoer > 6 || invoer == 0) {
+                System.out.println("❌ Ongeldige invoer");
+                System.out.print("👉 Selecteer een optie >>> ");
+                invoer = sc.nextInt();
+            }
 
             if (invoer == 1) {
                 System.out.print("✏️  Type hier je nieuwe titel >>> ");
@@ -395,6 +467,13 @@ public class hoortBij {
             if (invoer == 5) {
                 System.out.print("⚡ Wil je prioriteit schakelen? (j/n) >>> ");
                 String antw = sc.nextLine();
+                while (!(antw.contains("j") || antw.contains("n"))){
+                    System.out.println("❌ Ongeldige invoer");
+                    System.out.print("⚡ Wil je prioriteit schakelen? (j/n) >>> ");
+                    antw = sc.nextLine();
+                }
+
+
                 if (antw.equalsIgnoreCase("j")) {
                     String sql = "UPDATE taken SET is_prioriteit = NOT is_prioriteit WHERE taak_id = ?";
                     try (PreparedStatement stmt = dbc.prepareStatement(sql)) {
@@ -416,7 +495,7 @@ public class hoortBij {
         Scanner sc = new Scanner(System.in);
         focusModus fm = new focusModus();
 
-        System.out.println("╔═════════════════════════════════════════════════════════════════════════════════════════════════════════╗");
+        System.out.println("╔═══════════════════════════════════════════════════════════════════════════════════════════════PlanWise══╗");
         System.out.println("                                📋  HOOFD MENU  📋                                                       ");
         System.out.println("╚═════════════════════════════════════════════════════════════════════════════════════════════════════════╝\n");
 
@@ -432,6 +511,14 @@ public class hoortBij {
         System.out.print("👉 Keuze: ");
         int invoer = sc.nextInt();
 
+
+        while (invoer > 4 || invoer == 0) {
+            System.out.println("❌ Ongeldige invoer");
+            System.out.print("👉 Keuze: ");
+            invoer = sc.nextInt();
+        }
+
+
         if (invoer == 1) { alleTaken(); }
         if (invoer == 2) { taakAanmakenViaInput(); }
         if (invoer == 3) { fm.getPrioriteitsTaken(); }
@@ -439,7 +526,4 @@ public class hoortBij {
 
         blank(5);
     }
-
-
-
 }

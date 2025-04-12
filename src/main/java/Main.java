@@ -9,7 +9,7 @@ public class Main {
         hoortBij hoortBij = new hoortBij();
         focusModus focusModus = new focusModus();
 
-        //LoginSysteem.checkLogin();
+        LoginSysteem.checkLogin();
 
         hoortBij.menu();
 
