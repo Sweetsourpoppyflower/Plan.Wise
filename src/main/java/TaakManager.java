@@ -1,11 +1,10 @@
 import java.sql.*;
-import java.util.ArrayList;
 import java.util.InputMismatchException;
 import java.util.Scanner;
 import java.time.LocalDate;
 
-public class hoortBij {
-    public ArrayList<taak> taken;
+public class TaakManager {
+    public Scanner sc = new Scanner(System.in);
 
     public void taakAanmaken(int taakID, String gebruikersnaam, String taaknaam, String beschrijving, String datum, String locatie, boolean isPrioriteit) {
         try (Connection dbc = DatabaseConnector.connect()) {
@@ -55,7 +54,6 @@ public class hoortBij {
 
 
     public void taakAanmakenViaInput() throws SQLException, ClassNotFoundException {
-        Scanner sc = new Scanner(System.in);
         String gebruikersnaam = "Appie";
         int taakID = 0;
 
@@ -111,7 +109,6 @@ public class hoortBij {
 
     public void vandaagsTaken() throws SQLException, ClassNotFoundException {
         blank(50);
-        Scanner sc = new Scanner(System.in);
         LocalDate today = LocalDate.now();
 
         try (Connection dbc = DatabaseConnector.connect()) {
@@ -154,7 +151,6 @@ public class hoortBij {
 
     public void vanDeWeeksTaken() throws SQLException, ClassNotFoundException {
         blank(50);
-        Scanner sc = new Scanner(System.in);
         LocalDate today = LocalDate.now();
         LocalDate endOfWeek = today.plusDays(6);
 
@@ -200,7 +196,6 @@ public class hoortBij {
 
     public void alleTaken() throws SQLException, ClassNotFoundException {
         blank(50);
-        Scanner sc = new Scanner(System.in);
         int hoogsteID = 0;
         try (Connection dbc = DatabaseConnector.connect();) {
             String query = "SELECT * FROM taken";
@@ -263,7 +258,6 @@ public class hoortBij {
 
     public void toonTaakInfo(int taakID) throws SQLException, ClassNotFoundException {
         blank(50);
-        Scanner sc = new Scanner(System.in);
         Connection dbc = DatabaseConnector.connect();
         String sql = "SELECT taak_id, taaknaam, beschrijving, datum, locatie, is_prioriteit FROM taken WHERE taak_id = ?";
 
@@ -301,7 +295,6 @@ public class hoortBij {
 
 
     public void updateTaak(int taakID) throws SQLException, ClassNotFoundException {
-        Scanner sc = new Scanner(System.in);
         boolean bezig = false;
 
         if (taakID != 0) {
@@ -404,8 +397,7 @@ public class hoortBij {
 
     public void menu() throws SQLException, ClassNotFoundException {
         blank(50);
-        Scanner sc = new Scanner(System.in);
-        focusModus fm = new focusModus();
+        FocusModus fm = new FocusModus();
 
         header("📋  HOOFD MENU  📋");
         menuHeader("📜  Kies een van de volgende opties:  📜");

@@ -1,17 +1,12 @@
 import java.sql.SQLException;
-import java.sql.*;
-import java.util.ArrayList;
-import java.util.Scanner;
 public class Main {
 
 
     public static void main(String[] args) throws SQLException, ClassNotFoundException {
-        hoortBij hoortBij = new hoortBij();
-        focusModus focusModus = new focusModus();
 
+        TaakManager TaakManager = new TaakManager();
         LoginSysteem.checkLogin();
-
-        hoortBij.menu();
+        TaakManager.menu();
 
     }
 }

@@ -1,4 +1,4 @@
-public class taak {
+public class Taak implements SysteemEntiteit {
     private int taakID;
     private String taaknaam;
     private String beschrijving;
@@ -10,7 +10,7 @@ public class taak {
         return taaknaam;
     }
 
-    public taak(int taakID, String gebruikersnaam, String taaknaam, String beschrijving, String datum, String locatie, boolean isPrioriteit){
+    public Taak(int taakID, String gebruikersnaam, String taaknaam, String beschrijving, String datum, String locatie, boolean isPrioriteit){
         this.taakID = taakID;
         this.gebruikersnaam = gebruikersnaam;
         this.taaknaam = taaknaam;
@@ -37,6 +37,11 @@ public class taak {
 
     public void setTaaknaam(String taaknaam) {
         this.taaknaam = taaknaam;
+    }
+
+    @Override
+    public String getNaam() {
+        return taaknaam;
     }
 
     public String getBeschrijving() {

@@ -1,11 +1,9 @@
-import java.util.Scanner;
-
-public class gebruiker implements persoon{
+public class Gebruiker implements SysteemEntiteit {
     private String email;
     private String gebruikersnaam;
     private String wachtwoord;
 
-    public gebruiker(String email, String gebruikersnaam, String wachtwoord) {
+    public Gebruiker(String email, String gebruikersnaam, String wachtwoord) {
         this.email = email;
         this.gebruikersnaam = gebruikersnaam;
         this.wachtwoord = wachtwoord;
@@ -35,4 +33,13 @@ public class gebruiker implements persoon{
         return wachtwoord;
     }
 
+    @Override
+    public String getNaam() {
+        return gebruikersnaam;
+    }
+
+    @Override
+    public String getBeschrijving() {
+        return "E-mail:" + email;
+    }
 }
